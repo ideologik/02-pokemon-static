@@ -6,16 +6,16 @@ import { Card, Grid, Text, Button, Container, Image } from '@nextui-org/react';
 import confetti from 'canvas-confetti'
 
 import { Layout } from '../../components/layouts';
-import { localFavorites } from '../../utils';
+import { getPokemonInfo, localFavorites } from '../../utils';
 import { pokeApi } from '../../api';
 import { PokemonFull, PokemonLite } from '../../interfaces';
-import { getPokemonInfo } from '../../utils/getPokemonInfo';
+import { PokemonListResponse } from '../../interfaces/pokemon-list';
 
 interface Props {
     pokemon: PokemonFull;
 }
 
-const PokemonPage: NextPage<Props> = ({ pokemon }) => {
+const PokemonPageByName: NextPage<Props> = ({ pokemon }) => {
 
     const [isInfavorites, setIsInFavorites] = useState(false);
 
@@ -69,7 +69,7 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
                                 <Image src={pokemon.sprites.front_shiny} alt={pokemon.name} width={100} height={100} />
                                 <Image src={pokemon.sprites.back_shiny} alt={pokemon.name} width={100} height={100} />
                             </Container>
-                        </Card.Body>
+                          </Card.Body>
                     </Card>
                 </Grid>
 
@@ -79,13 +79,20 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
         </Layout>
     )
 }
-export default PokemonPage
+export default PokemonPageByName
 export async function getStaticPaths() {
-    const paths = new Array(151).fill(0).map((_, index) => ({
-        params: {
-            id: (index + 1).toString()
+    const {data} = await pokeApi.get<PokemonListResponse>('pokemon?limit=151');
+
+    const paths = data.results.map((pokemon) => {
+        const res = {
+            params: {
+                name: pokemon.name
+            }
         }
-    }));
+        console.log(JSON.stringify(pokemon, null, 2))
+        return res
+    })
+
     return {
         paths,
         fallback: false, // can also be true or 'blocking'
@@ -93,14 +100,18 @@ export async function getStaticPaths() {
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
+    console.log('Entro en getStaticProps');
 
-    const { id } = params as { id: string };
+    const { name } = params as { name: string };
 
-    const pokemon = await getPokemonInfo(id);
+    const { data } = await pokeApi.get<PokemonLite>('/pokemon/' + name);
+
+    const pokemon = await getPokemonInfo(name);
 
     return {
         props: {
             pokemon,
+
         }
     }
 }
