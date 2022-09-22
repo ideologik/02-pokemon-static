@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: false,
   swcMinify: true,
   images: { domains: ['raw.githubusercontent.com'] },
-  staticPageGenerationTimeout: 180,
+  staticPageGenerationTimeout: 60,
 }
 
 module.exports = nextConfig

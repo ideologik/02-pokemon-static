@@ -89,29 +89,32 @@ export async function getStaticPaths() {
                 name: pokemon.name
             }
         }
-        console.log(JSON.stringify(pokemon, null, 2))
         return res
     })
 
     return {
         paths,
-        fallback: false, // can also be true or 'blocking'
+        fallback: 'blocking'
+        // fallback: false, // can also be true or 'blocking'
     }
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-    console.log('Entro en getStaticProps');
-
     const { name } = params as { name: string };
-
-    const { data } = await pokeApi.get<PokemonLite>('/pokemon/' + name);
-
     const pokemon = await getPokemonInfo(name);
+    if (!pokemon) {
+        return {
+            redirect: {
+                destination: '/',
+                permanent: false
 
+            }
+        }
+    }
     return {
         props: {
             pokemon,
-
-        }
+        },
+        revalidate: 86400 //60 * 60 * 24
     }
 }
